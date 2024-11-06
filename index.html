@@ -1,32 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRIX Results</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tricks Game - Login and Score Management</title>
+    <style>
+        /* Basic styling */
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; color: #ffffff; margin: 0; padding: 0; }
+        .container { display: flex; gap: 20px; max-width: 800px; flex-direction: column; align-items: center; }
+        .login, .content { display: none; width: 300px; background-color: #333; padding: 20px; border-radius: 8px; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 4px; background-color: #555; color: #fff; }
+        button { background-color: #1a73e8; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+    </style>
 </head>
 <body>
-  <h1>TRIX Game Results</h1>
-  
-  <!-- Form to add results -->
-  <form id="result-form">
-    <label for="team1">Team 1 Score:</label>
-    <input type="number" id="team1" name="team1" required>
-    
-    <label for="team2">Team 2 Score:</label>
-    <input type="number" id="team2" name="team2" required>
-    
-    <button type="submit">Save Results</button>
-  </form>
 
-  <!-- Display stored results -->
-  <h2>Previous Results:</h2>
-  <div id="results"></div>
+<div class="container">
+    <!-- Login Section -->
+    <div class="login" id="loginSection">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="error-message" style="color: #ff5722;"></p>
+    </div>
 
-  <script type="module">
+    <!-- Main Content Section (Score Management) -->
+    <div class="content" id="scoreSection">
+        <h2 id="welcomeMsg"></h2>
+        <div>
+            <img src="https://example.com/path/to/cards.jpg" alt="Playing Cards">
+        </div>
+
+        <h3>Results</h3>
+        <table id="scoreTable">
+            <tr>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+        
+        <div id="adminControls">
+            <h3>Update Scores</h3>
+            <select id="playerSelect">
+                <option value="Abo Amin">Abo Amin</option>
+                <option value="Abo Marwan">Abo Marwan</option>
+                <option value="Abo Karam">Abo Karam</option>
+                <option value="Abo Toufic">Abo Toufic</option>
+            </select>
+            <input type="number" id="scoreInput" placeholder="Enter Score">
+            <button onclick="updateScore()">Submit Score</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
     // Import Firebase and database functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -44,37 +78,90 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Reference to the results in the database
-    const resultsRef = ref(db, 'results');
+    // Mock user data with role
+    const users = {
+        "admin": { password: "admin123", role: "admin" },
+        "user1": { password: "user123", role: "user", name: "Abo Amin" },
+        "user2": { password: "user123", role: "user", name: "Abo Marwan" },
+        "user3": { password: "user123", role: "user", name: "Abo Karam" },
+        "user4": { password: "user123", role: "user", name: "Abo Toufic" }
+    };
 
-    // Save results to the database
-    document.getElementById('result-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const team1Score = document.getElementById('team1').value;
-      const team2Score = document.getElementById('team2').value;
+    let currentUser = null;
 
-      // Push new result to the database
-      const newResultRef = push(resultsRef);
-      set(newResultRef, {
-        team1: team1Score,
-        team2: team2Score,
-        date: new Date().toLocaleDateString()
-      }).then(() => {
-        alert('Result saved successfully!');
-      }).catch((error) => {
-        console.error('Error saving result:', error);
-      });
-    });
+    // Login function
+    function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const user = users[username];
 
-    // Display results from the database
-    onValue(resultsRef, (snapshot) => {
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = '';  // Clear previous results
-      snapshot.forEach((childSnapshot) => {
-        const data = childSnapshot.val();
-        resultsDiv.innerHTML += `<p>Team 1: ${data.team1} - Team 2: ${data.team2} | Date: ${data.date}</p>`;
-      });
-    });
-  </script>
+        if (user && user.password === password) {
+            currentUser = user;
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("scoreSection").style.display = "block";
+            document.getElementById("welcomeMsg").textContent = `Welcome, ${username}!`;
+            displayScores();
+            document.getElementById("adminControls").style.display = currentUser.role === "admin" ? "block" : "none";
+        } else {
+            document.getElementById("error-message").textContent = "Invalid username or password!";
+        }
+    }
+
+    // Display scores from Firebase
+    function displayScores() {
+        const scoreTable = document.getElementById("scoreTable");
+        scoreTable.innerHTML = `
+            <tr>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Actions</th>
+            </tr>
+        `;
+
+        const scoresRef = ref(db, 'scores');
+        onValue(scoresRef, (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+                const playerName = childSnapshot.key;
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${playerName}</td>
+                    <td>${data}</td>
+                    <td>
+                        ${currentUser.role === "admin" || currentUser.name === playerName ? 
+                        `<button onclick="deleteScore('${playerName}')">Delete</button>` : ""}
+                    </td>
+                `;
+                scoreTable.appendChild(row);
+            });
+        });
+    }
+
+    // Update score in Firebase
+    function updateScore() {
+        const player = document.getElementById("playerSelect").value;
+        const score = parseInt(document.getElementById("scoreInput").value);
+        if (!isNaN(score)) {
+            const playerRef = ref(db, `scores/${player}`);
+            set(playerRef, score).then(() => {
+                alert(`Score updated for ${player}`);
+            });
+        }
+    }
+
+    // Delete score in Firebase (admin and player themselves only)
+    function deleteScore(player) {
+        if (confirm(`Are you sure you want to delete the score for ${player}?`)) {
+            const playerRef = ref(db, `scores/${player}`);
+            set(playerRef, 0).then(() => {
+                alert(`Score deleted for ${player}`);
+            });
+        }
+    }
+
+    // Initial display setup
+    document.getElementById("loginSection").style.display = "block";
+</script>
+
 </body>
 </html>
