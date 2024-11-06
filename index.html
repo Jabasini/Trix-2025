@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRIX Results</title>
+</head>
+<body>
+  <h1>TRIX Game Results</h1>
+  
+  <!-- Form to add results -->
+  <form id="result-form">
+    <label for="team1">Team 1 Score:</label>
+    <input type="number" id="team1" name="team1" required>
+    
+    <label for="team2">Team 2 Score:</label>
+    <input type="number" id="team2" name="team2" required>
+    
+    <button type="submit">Save Results</button>
+  </form>
+
+  <!-- Display stored results -->
+  <h2>Previous Results:</h2>
+  <div id="results"></div>
+
+  <script type="module">
+    // Import Firebase and database functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0XcrSDIy3-fbzxLEh9G0Zh9SvUOVKD-o",
+      authDomain: "trix2024.firebaseapp.com",
+      databaseURL: "https://trix2024-default-rtdb.firebaseio.com",
+      projectId: "trix2024",
+      storageBucket: "trix2024.appspot.com",
+      messagingSenderId: "429415817444",
+      appId: "1:429415817444:web:b027629631f85c17914cf1",
+      measurementId: "G-MPZZL4Y2RF"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Reference to the results in the database
+    const resultsRef = ref(db, 'results');
+
+    // Save results to the database
+    document.getElementById('result-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const team1Score = document.getElementById('team1').value;
+      const team2Score = document.getElementById('team2').value;
+
+      // Push new result to the database
+      const newResultRef = push(resultsRef);
+      set(newResultRef, {
+        team1: team1Score,
+        team2: team2Score,
+        date: new Date().toLocaleDateString()
+      }).then(() => {
+        alert('Result saved successfully!');
+      }).catch((error) => {
+        console.error('Error saving result:', error);
+      });
+    });
+
+    // Display results from the database
+    onValue(resultsRef, (snapshot) => {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';  // Clear previous results
+      snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
+        resultsDiv.innerHTML += `<p>Team 1: ${data.team1} - Team 2: ${data.team2} | Date: ${data.date}</p>`;
+      });
+    });
+  </script>
+</body>
+</html>
