@@ -3,66 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tricks Game - Login and Score Management</title>
+    <title>Tricks Game Score Registration</title>
     <style>
-        /* Basic styling */
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; color: #ffffff; margin: 0; padding: 0; }
-        .container { display: flex; gap: 20px; max-width: 800px; flex-direction: column; align-items: center; }
-        .login, .content { display: none; width: 300px; background-color: #333; padding: 20px; border-radius: 8px; }
-        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 4px; background-color: #555; color: #fff; }
-        button { background-color: #1a73e8; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #121212; 
+            color: #ffffff; 
+            text-align: left; 
+            direction: ltr;
+        }
+        form { 
+            margin-top: 20px; 
+            background-color: #333; 
+            padding: 20px; 
+            border-radius: 8px;
+        }
+        input, select, textarea, button { 
+            margin: 5px 0; 
+            padding: 10px; 
+            width: 100%; 
+            background-color: #555; 
+            color: #fff; 
+            border: none; 
+            border-radius: 4px;
+        }
+        button { 
+            background-color: #1a73e8; 
+            cursor: pointer;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            color: #fff;
+        }
+        th, td { 
+            border: 1px solid #444; 
+            padding: 8px; 
+            text-align: center; 
+        }
+        img { 
+            display: block; 
+            margin: 20px auto; 
+            width: 300px; 
+        }
+        #analysis { 
+            font-size: 18px; 
+            margin-top: 20px; 
+        }
+        .highlight { 
+            font-weight: bold; 
+            font-size: 24px; 
+            color: #ff5722; 
+            text-align: center; 
+            margin-top: 10px; 
+        }
+        #content-container { 
+            display: flex; 
+            flex-direction: row-reverse; 
+            gap: 20px; 
+            align-items: flex-start; 
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Login Section -->
-    <div class="login" id="loginSection">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">Login</button>
-        <p id="error-message" style="color: #ff5722;"></p>
-    </div>
+<h2>Tricks Game Final Score Registration</h2>
 
-    <!-- Main Content Section (Score Management) -->
-    <div class="content" id="scoreSection">
-        <h2 id="welcomeMsg"></h2>
-        <div>
-            <img src="https://example.com/path/to/cards.jpg" alt="Playing Cards">
-        </div>
+<div class="highlight" id="leadingTeam"></div>
 
-        <h3>Results</h3>
-        <table id="scoreTable">
-            <tr>
-                <th>Player</th>
-                <th>Score</th>
-                <th>Actions</th>
-            </tr>
-        </table>
-        
-        <div id="adminControls">
-            <h3>Update Scores</h3>
-            <select id="playerSelect">
-                <option value="Abo Amin">Abo Amin</option>
-                <option value="Abo Marwan">Abo Marwan</option>
-                <option value="Abo Karam">Abo Karam</option>
-                <option value="Abo Toufic">Abo Toufic</option>
-            </select>
-            <input type="number" id="scoreInput" placeholder="Enter Score">
-            <button onclick="updateScore()">Submit Score</button>
-        </div>
+<div id="content-container">
+    <!-- Displaying Card Image -->
+    <img src="cards.jpg" alt="Playing Cards">
+
+    <!-- Results Analysis Section -->
+    <div id="analysis">
+        <h3>Results Analysis</h3>
+        <p>Total Score of Abo Amin: <span id="totalAboAmin">0</span></p>
+        <p>Total Score of Abo Toufic: <span id="totalAboToufic">0</span></p>
+        <p>Monthly Analysis:</p>
+        <ul id="monthlyAnalysis"></ul>
     </div>
 </div>
 
-<script type="module">
-   
+<form id="recordForm">
+    <label for="date">التاريخ:</label>
+    <input type="text" id="date" placeholder="YYYY-MM-DD" required>
+    
+    <label for="name">اسم اللاعب:</label>
+    <select id="name" required>
+        <option value="">اختيار اللاعب</option>
+        <option value="Abo Amin">Abo Amin</option>
+        <option value="Abo Marwan">Abo Marwan</option>
+        <option value="Abo Karam">Abo Karam</option>
+        <option value="Abo Toufic">Abo Toufic</option>
+    </select>
+    
+    <label>النتيجة:</label>
+    <div style="display: flex; gap: 10px;">
+        <input type="number" id="scoreAboAmin" placeholder="Abo Amin's Score" required>
+        <input type="number" id="scoreAboToufic" placeholder="Abo Toufic's Score" required>
+    </div>
+    
+    <label for="notes">ملاحظات:</label>
+    <textarea id="notes" placeholder="ملاحظات إضافية..."></textarea>
+    
+    <button type="button" onclick="addRecord()">إضافة نتيجة</button>
+</form>
 
-    // Initial display setup
-    document.getElementById("loginSection").style.display = "block";
-</script>
+<table id="recordsTable">
+    <thead>
+        <tr>
+            <th>التاريخ</th>
+            <th>اسم اللاعب</th>
+            <th>نتيجة Abo Amin</th>
+            <th>نتيجة Abo Toufic</th>
+            <th>ملاحظات</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
 
-</body>
-</html>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyC0XcrSDIy3-fbzxLEh9G0Zh9SvUOVKD-o",
+        authDomain: "trix2024.firebaseapp.com",
+        databaseURL: "https://trix2024-default-rtdb.firebaseio.com",
+        projectId: "trix2024",
+        storageBucket: "trix2024.firebasestorage.app",
+        messagingSenderId: "429415817444",
+        appId: "1:429415817444:web:b027629631f85c17914cf1",
+        measurementId: "G-MPZZL4Y2RF"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database(app);
+
+    // Variables to track scores and results
+    let totalAboAmin = 0;
+    let totalAboToufic = 0;
+    const monthlyResults = {};
+
+    // Auto-set current date on page load
+    window.onload = function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("date").value = today;
+    };
+
+    // Add record function
+    function addRecord() {
+        const date = document.getElementById("date").value;
+        const name = document.getElementById("name").value;
+        const scoreAboAmin = parseInt(document.getElementById("scoreAboAmin").value) || 0;
+        const scoreAboToufic = parseInt(document.getElementById("scoreAboToufic").value) || 0;
+        const notes = document.getElementById("notes").value;
+
+        // Validate date format (YYYY-MM-DD)
+        const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+        if (!datePattern.test(date)) {
+            alert("يرجى إدخال التاريخ بالتنسيق YYYY-MM-DD.");
+            return;
+        }
+
+        // Validate required fields
+        if (date && name && (scoreAboAmin || scoreAboToufic)) {
+            const table = document.getElementById("recordsTable").getElementsByTagName("tbody")[0];
+            const newRow = table.insertRow();
+
+            newRow.insertCell(0).innerText = date;
+            newRow.insertCell(1).innerText = name;
+            newRow.insertCell(2).innerText = scoreAboAmin;
+            newRow.insertCell(3).innerText = scoreAboToufic;
+            newRow.insertCell(4).innerText = notes;
+
+            // Update total scores
+            totalAboAmin += scoreAboAmin;
+            totalAboToufic += scoreAboToufic;
+
+            document.getElementById("totalAboAmin").innerText = totalAboAmin;
+            document.getElementById("totalAboToufic").innerText = totalAboToufic;
+
+            // Monthly Analysis
+            const month = date.slice(0, 7);
+            if (!monthlyResults[month]) {
+                monthlyResults[month] = { aboAmin: 0, aboToufic: 0 };
+            }
+            monthlyResults[month].aboAmin += scoreAboAmin;
+            monthlyResults[month].aboToufic += scoreAboToufic;
+
+            updateMonthlyAnalysis();
+            updateLeadingTeam();
+
+            // Save record to Firebase Realtime Database
+            const newRecordKey = database.ref().child('records').push().key;
+            const recordData = {
+                date: date,
+                name: name,
+                scoreAboAmin: scoreAboAmin,
+                scoreAboToufic: scoreAboToufic,
+                notes: notes
+            };
+
+            // Save new record to Firebase
+            const updates = {};
+            updates['/records/' + newRecordKey] = recordData;
+            database.ref().update(updates);
+
+            document.getElementById("recordForm").reset();
+            document.getElementById("date").value = date;
+        } else {
+            alert("يرجى ملء جميع الحقول المطلوبة.");
+        }
+    }
+
+    // Update monthly analysis
+    function updateMonthlyAnalysis() {
+        const monthlyAnalysis = document.getElementById("monthlyAnalysis");
+        monthlyAnalysis.innerHTML = "";
+        for (const [month, scores] of Object.entries(monthlyResults)) {
+            const li = document.createElement("li");
+            li.innerText = `${month}: Abo Amin's Score = ${scores.aboAmin}, Abo Toufic AL
